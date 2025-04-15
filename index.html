@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medicine Quality Check</title>
+  <link rel="icon" href="skills_1207390.png" type="image/png" />
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.16.40/font/lucide.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  
+  <style>
+    /* Base Styles */
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: rgb(255, 255, 255);
+      /* background-image: url('images.jpg');
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-position: fixed; */
+    }
+
+    /* Card Styles */
+    .card {
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Medicine Quality Check specific styles */
+    #qualityResult {
+      margin-top: 1rem;
+    }
+
+    #medicineDetails {
+      margin-top: 1.5rem;
+    }
+
+    .medicine-info {
+      background-color: #f3f4f6;
+      padding: 1rem;
+      border-radius: 0.5rem;
+    }
+
+    .medicine-info p {
+      color: #374151;
+      margin-bottom: 0.5rem;
+    }
+
+    .medicine-info strong {
+      font-weight: 600;
+    }
+
+    /* Call Support Section */
+    #callOption {
+      margin-top: 1.5rem;
+    }
+
+    .call-support {
+      background-color: #eff6ff;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      border-left: 4px solid #3b82f6;
+    }
+
+    /* Auth Forms */
+    #auth-container {
+      max-width: 400px;
+      margin: 2rem auto;
+      padding: 2rem;
+      border-radius: 20px;
+      border: 5px solid bisque;
+    }
+
+    .auth-form {
+      display: none;
+    }
+
+    .auth-form.active {
+      display: block;
+    }
+
+    .auth-form h3 {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .auth-form label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .auth-form input {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .password-input {
+      position: relative;
+    }
+
+    .password-input i {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+    }
+
+    .error-message {
+      color: red;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    #register-btn, #login-btn {
+      width: 100%;
+      padding: 0.5rem;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #register-btn:hover, #login-btn:hover {
+      background-color: #657297;
+    }
+
+    /* Oval Logout Button Styles */
+    .logout-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: #e37171;
+      color: white;
+      padding: 0.5rem 1.5rem;
+      border-radius: 50px; /* This creates the oval shape */
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: none;
+      outline: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .logout-btn:hover {
+      background-color: #c7bbbb;
+      color: red;
+      transform: scale(1.05);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .logout-btn i {
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Add this right before the closing </body> tag -->
+<div id="ai-chatbot" style="position: fixed; bottom: 20px; right: 20px; width: 350px; max-height: 500px; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: none; flex-direction: column; z-index: 1000;">
+  <div id="chatbot-header" style="background: #2563eb; color: white; padding: 12px; border-radius: 10px 10px 0 0; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+    <h3 style="margin: 0; font-size: 16px;">Medicine Quality Assistant</h3>
+    <button id="minimize-chat" style="background: none; border: none; color: white; font-size: 18px;">−</button>
+  </div>
+  <div id="chatbot-body" style="flex: 1; padding: 15px; overflow-y: auto; height: 300px;">
+    <div class="chat-message bot-message" style="margin-bottom: 10px; background: #f3f4f6; padding: 10px; border-radius: 8px;">
+      <p style="margin: 0;">Hello! I'm your Medicine Quality Assistant. How can I help you today? Here are some things I can do:</p>
+      <ul style="margin: 5px 0 0 15px; padding: 0;">
+        <!-- <li>Explain how to check medicine quality</li> -->
+        <li>Tell you about medicine details</li>
+        <li>Help with barcode verification</li>
+        <li>Explain expiry date importance</li>
+        <li>Thank You</li>
+      </ul>
+    </div>
+  </div>
+  <div style="padding: 10px; border-top: 1px solid #eee;">
+    <input id="chatbot-input" type="text" placeholder="Type your question..." style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 8px;">
+    <button id="send-chat" style="background: #2563eb; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Send</button>
+  </div>
+</div>
+
+<button id="chatbot-toggle" style="position: fixed; bottom: 20px; right: 20px; background: #2563eb; color: white; border: none; width: 60px; height: 60px; border-radius: 50%; box-shadow: 0 4px 8px rgba(0,0,0,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 999;">
+  <i class="fas fa-robot" style="font-size: 24px;"></i>
+</button>
+
+<script>
+  // Add this to your existing script
+  document.addEventListener('DOMContentLoaded', function() {
+    const chatbotToggle = document.getElementById('chatbot-toggle');
+    const aiChatbot = document.getElementById('ai-chatbot');
+    const minimizeChat = document.getElementById('minimize-chat');
+    const chatbotBody = document.getElementById('chatbot-body');
+    const chatbotInput = document.getElementById('chatbot-input');
+    const sendChat = document.getElementById('send-chat');
+    
+    // Toggle chatbot visibility
+    chatbotToggle.addEventListener('click', function() {
+      if (aiChatbot.style.display === 'none' || !aiChatbot.style.display) {
+        aiChatbot.style.display = 'flex';
+        minimizeChat.textContent = '−';
+      } else {
+        aiChatbot.style.display = 'none';
+      }
+    });
+    
+    // Minimize/maximize chatbot
+    minimizeChat.addEventListener('click', function() {
+      if (minimizeChat.textContent === '−') {
+        aiChatbot.style.height = '40px';
+        minimizeChat.textContent = '+';
+      } else {
+        aiChatbot.style.height = '';
+        minimizeChat.textContent = '−';
+      }
+    });
+    
+    // Send message function
+    function sendMessage() {
+      const message = chatbotInput.value.trim();
+      if (!message) return;
+      
+      // Add user message
+      const userMessage = document.createElement('div');
+      userMessage.className = 'chat-message user-message';
+      userMessage.style.marginBottom = '10px';
+      userMessage.style.padding = '10px';
+      userMessage.style.borderRadius = '8px';
+      userMessage.style.backgroundColor = '#e0e7ff';
+      userMessage.style.alignSelf = 'flex-end';
+      userMessage.innerHTML = `<p style="margin: 0;">${message}</p>`;
+      chatbotBody.appendChild(userMessage);
+      
+      // Clear input
+      chatbotInput.value = '';
+      
+      // Scroll to bottom
+      chatbotBody.scrollTop = chatbotBody.scrollHeight;
+      
+      // Generate bot response
+      setTimeout(() => {
+        generateBotResponse(message);
+      }, 500);
+    }
+    
+    // Handle enter key
+    chatbotInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+    
+    // Handle send button click
+    sendChat.addEventListener('click', sendMessage);
+    
+    // Bot response logic
+    function generateBotResponse(message) {
+      let response = '';
+      const lowerMessage = message.toLowerCase();
+      
+      if (lowerMessage.includes('hello') || lowerMessage.includes('hi')) {
+        response = "Hello! How can I assist you with medicine quality checks today?";
+      } 
+      else if (lowerMessage.includes('how check quality check') || lowerMessage.includes('verify')) {
+        response = "To check medicine quality:<br>1. Enter the barcode number in the input field<br>2. Click 'Perform Quality Check'<br>3. The system will verify against our database<br>4. You'll see if the medicine passed or failed the check";
+      }
+      else if (lowerMessage.includes('barcode') || lowerMessage.includes('scan')) {
+        response = "The barcode is usually found on the medicine packaging. It's a unique identifier that helps us verify the medicine's authenticity and quality. Enter the numbers exactly as they appear on the package.";
+      }
+      else if (lowerMessage.includes('expir') || lowerMessage.includes('date')) {
+        response = "Expiry dates are crucial for medicine safety. Never use medicine after its expiry date as it may be ineffective or even harmful. Our system checks the expiry date as part of the quality verification process.";
+      }
+      else if (lowerMessage.includes('detail') || lowerMessage.includes('information')) {
+        response = "For verified medicines, you'll see:<br>- Medicine name<br>- Description<br>- Dosage information<br>- Manufacturer details<br>- Manufacturing date<br>- Expiry date";
+      }
+      else if (lowerMessage.includes('fail') || lowerMessage.includes('invalid')) {
+        response = "If a medicine fails the quality check:<br>1. Double-check the barcode<br>2. Contact the pharmacy where you purchased it<br>3. Use the 'Call Support' option for assistance<br>4. Do not consume medicine that fails verification";
+      }
+      else if (lowerMessage.includes('help')) {
+        response = "I can help with:<br>- Quality check instructions<br>- Medicine information<br>- Barcode verification<br>- Expiry date questions<br>- Failed quality checks<br>What specifically do you need help with?";
+      }
+      else if (lowerMessage.includes('Thank you')) {
+        response = "Don’t forget to take care of yourself, okay?";
+      }
+      else {
+        response = "I'm sorry, I didn't understand that. I can help with medicine quality checks, barcode verification, and medicine information. Could you please rephrase your question?";
+      }
+      
+      // Add bot response
+      const botMessage = document.createElement('div');
+      botMessage.className = 'chat-message bot-message';
+      botMessage.style.marginBottom = '10px';
+      botMessage.style.padding = '10px';
+      botMessage.style.borderRadius = '8px';
+      botMessage.style.backgroundColor = '#f3f4f6';
+      botMessage.innerHTML = `<p style="margin: 0;">${response}</p>`;
+      chatbotBody.appendChild(botMessage);
+      
+      // Scroll to bottom
+      chatbotBody.scrollTop = chatbotBody.scrollHeight;
+    }
+    
+    // Pre-populate with help message when opened
+    chatbotToggle.addEventListener('click', function() {
+      if (aiChatbot.style.display === 'flex' && chatbotBody.children.length <= 1) {
+        const welcomeMessage = document.createElement('div');
+        welcomeMessage.className = 'chat-message bot-message';
+        welcomeMessage.style.marginBottom = '10px';
+        welcomeMessage.style.padding = '10px';
+        welcomeMessage.style.borderRadius = '8px';
+        welcomeMessage.style.backgroundColor = '#f3f4f6';
+        welcomeMessage.innerHTML = `
+          <p style="margin: 0;">Welcome to the Medicine Quality Assistant! Try asking:</p>
+          <ul style="margin: 5px 0 0 15px; padding: 0;">
+            <li>"How do I check medicine quality?"</li>
+            <li>"What does a failed check mean?"</li>
+            <li>"Where can I find the barcode?"</li>
+            <li>"Why is expiry date important?"</li>
+          </ul>
+        `;
+        chatbotBody.appendChild(welcomeMessage);
+      }
+    });
+  });
+</script>
+  <!-- Auth Forms Container -->
+  <div id="auth-container">
+    <!-- Registration Form -->
+    <div id="register-form" class="auth-form active">
+      <h3>Register</h3>
+      <form id="userRegisterForm">
+        <label for="reg-email">Email:</label>
+        <input type="email" id="reg-email" required placeholder="Enter your email">
+        
+        <label for="reg-password">Password:</label>
+        <div class="password-input">
+          <input type="password" id="reg-password" required placeholder="Enter your password">
+          <i class="fas fa-eye" id="toggle-reg-password"></i>
+        </div>
+        
+        <div id="error-message" class="error-message"></div>
+        <button id="register-btn" type="submit">Register</button>
+        <p>Already have an account? <a id="login-here" href="#">Login here</a></p>
+      </form>
+    </div>
+
+    <!-- Login Form -->
+    <div id="login-form" class="auth-form">
+      <h3>Login</h3>
+      <form id="userLoginForm">
+        <label for="email">Email:</label>
+        <input type="email" id="email" required placeholder="Enter your email">
+        
+        <label for="password">Password:</label>
+        <div class="password-input">
+          <input type="password" id="password" required placeholder="Enter your password">
+          <i class="fas fa-eye" id="toggle-password"></i>
+        </div>
+        
+        <p><a id="forgot-password" href="#">Forgot Password?</a></p>
+        <button id="login-btn" type="submit">Login</button>
+        <p>Don't have an account? <a id="register-here" href="#">Register here</a></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main App (hidden initially) -->
+  <div id="app-container" style="display:none;" class="flex flex-col items-center justify-center min-h-screen p-4">
+    <!-- Oval Logout Button -->
+    <button id="logout-btn" class="logout-btn">
+      <i class="fas fa-sign-out-alt"></i>
+      <span>Logout</span>
+    </button>
+    
+    <div class="card w-full max-w-md mx-auto bg-white rounded-lg overflow-hidden">
+      <div class="p-6">
+        <div class="mb-6">
+          <h2 class="text-2xl font-bold">Medicine Quality Check</h2>
+          <p class="text-gray-600">Enter the barcode to perform a quality check and view medicine details.</p>
+        </div>
+        
+        <div class="space-y-4">
+          <div class="flex flex-col space-y-2">
+            <label for="barcode" class="font-medium">Barcode</label>
+            <input
+              id="barcode"
+              type="text"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter barcode"
+            />
+          </div>
+            <button id="checkButton" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            Perform Quality Check
+          </button>
+          
+          <div id="qualityResult" class="mt-4 hidden">
+            <div class="flex items-center space-x-2">
+              <i id="resultIcon" class="w-6 h-6"></i>
+              <p id="resultMessage" class="font-bold"></p>
+            </div>
+          </div>
+
+          <div id="medicineDetails" class="mt-6 hidden">
+            <div class="flex items-center space-x-2 mb-4">
+              <i class="icon icon-info w-6 h-6"></i>
+              <h2 class="text-xl font-bold">Medicine Details</h2>
+            </div>
+            <div class="bg-gray-100 p-4 rounded-lg">
+              <p class="text-gray-700"><strong>Name:</strong> <span id="medicineName"></span></p>
+              <p class="text-gray-700"><strong>Description:</strong> <span id="medicineDescription"></span></p>
+              <p class="text-gray-700"><strong>Dosage:</strong> <span id="medicineDosage"></span></p>
+              <p class="text-gray-700"><strong>Manufacturer:</strong> <span id="medicineManufacturer"></span></p>
+              <p class="text-gray-700"><strong>Manufacturing Date:</strong> <span id="manufacturingDate"></span></p>
+              <p class="text-gray-700"><strong>Expiry Date:</strong> <span id="expiryDate"></span></p>
+            </div>
+          </div>
+
+          <!-- Call Support Section (shown only when barcode is wrong) -->
+          <div id="callOption" class="hidden">
+            <div class="call-support">
+              <div class="flex items-center space-x-2 mb-2">
+                <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                <h3 class="font-bold">Invalid Barcode Detected</h3>
+              </div>
+              <p class="text-gray-700 mb-3">This medicine is not recognized in our system. Please verify the barcode or contact us for more details.</p>
+              <a href="tel:+18005551234" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center gap-2">
+                <i class="fas fa-phone"></i>
+                <span>Call Support Now</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Medicine database
+    const medicineDatabase = {
+      '0074929619':{
+          name: 'Synthroid',
+          description: 'To treat thyroid cancer',
+          dosage: '112mcg',
+          manufacturer: 'Abbvie',
+          manufacturingDate: '2022-04-02',
+          expiryDate: '05-06-2025',
+      },
+      '0093-3107-05':{
+            name: 'Amoxicillin',
+            description: 'To treat Oral Suspension',
+            dosage: '250g',
+            manufacturer: 'sandoz',
+            manufacturingDate: '2023-01-07',
+            expiryDate: '2026-04-23'
+      },
+      '123456789012': {
+        name: 'Paracetamol',
+        description: 'Pain reliever and fever reducer',
+        dosage: '500mg',
+        manufacturer: 'Generic Pharmaceuticals',
+        manufacturingDate: '2023-01-15',
+        expiryDate: '2027-01-15',
+      },
+      '234567890123': {
+        name: 'Ibuprofen',
+        description: 'Nonsteroidal anti-inflammatory drug',
+        dosage: '200mg',
+        manufacturer: 'Brand Pharmaceuticals',
+        manufacturingDate: '2023-02-20',
+        expiryDate: '2027-02-20',
+      },
+      '345678901234': {
+        name: 'Amoxicillin',
+        description: 'Antibiotic',
+        dosage: '500mg',
+        manufacturer: 'Antibiotic Labs',
+        manufacturingDate: '2023-03-10',
+        expiryDate: '2027-03-10',
+      },
+      '456789012345': {
+        name: 'Aspirin',
+        description: 'Anti-inflammatory and pain reliever',
+        dosage: '325mg',
+        manufacturer: 'Pain Relief Inc.',
+        manufacturingDate: '2023-04-25',
+        expiryDate: '2027-04-25',
+      },
+      '567890123456': {
+        name: 'Paracetamol Extra Strength',
+        description: 'Pain reliever and fever reducer',
+        dosage: '1000mg',
+        manufacturer: 'Generic Pharmaceuticals',
+        manufacturingDate: '2023-05-05',
+        expiryDate: '2027-05-05',
+      },
+      '678901234567': {
+        name: 'Ibuprofen Max',
+        description: 'Nonsteroidal anti-inflammatory drug',
+        dosage: '400mg',
+        manufacturer: 'Brand Pharmaceuticals',
+        manufacturingDate: '2023-06-15',
+        expiryDate: '2027-06-15',
+      },
+      '789012345678': {
+        name: 'Amoxicillin Plus',
+        description: 'Antibiotic',
+        dosage: '1000mg',
+        manufacturer: 'Antibiotic Labs',
+        manufacturingDate: '2023-07-20',
+        expiryDate: '2027-07-20',
+      },
+      '890123456789': {
+        name: 'Aspirin Max',
+        description: 'Anti-inflammatory and pain reliever',
+        dosage: '500mg',
+        manufacturer: 'Pain Relief Inc.',
+        manufacturingDate: '2023-08-10',
+        expiryDate: '2027-08-10',
+      },
+      '901234567890': {
+        name: 'Paracetamol Junior',
+        description: 'Pain reliever and fever reducer',
+        dosage: '125mg',
+        manufacturer: 'Generic Pharmaceuticals',
+        manufacturingDate: '2023-09-25',
+        expiryDate: '2027-09-25',
+      },
+      '012345678901': {
+        name: 'Ibuprofen Junior',
+        description: 'Nonsteroidal anti-inflammatory drug',
+        dosage: '100mg',
+        manufacturer: 'Brand Pharmaceuticals',
+        manufacturingDate: '2023-10-05',
+        expiryDate: '2027-10-05',
+      },
+      '8901234235660': {
+    name: 'Tums',
+    description: 'Antacid for heartburn and indigestion.',
+    dosage: '1 tablet every 4–6 hours. Max 8 tablets/day.',
+    manufacturer: 'CureWell Biotech Inc.',
+    manufacturingDate: '2024-01-08',
+    expiryDate: '2026-01-07',
+  },
+  '8901234582568': {
+    name: 'Maalox',
+    description: 'Antacid for heartburn and indigestion.',
+    dosage: '500 mg twice a day after meals.',
+    manufacturer: 'CureWell Biotech Inc.',
+    manufacturingDate: '2025-01-12',
+    expiryDate: '2027-01-12',
+  },
+  '8901234361213': {
+    name: 'Visine Cold & Flu',
+    description: 'Relieves symptoms of cold and flu.',
+    dosage: '2 drops in each eye twice daily.',
+    manufacturer: 'LifePlus Pharma Co.',
+    manufacturingDate: '2024-08-07',
+    expiryDate: '2026-08-07',
+  },
+  '8901234601429': {
+    name: 'Lisinopril',
+    description: 'Controls blood pressure levels.',
+    dosage: '1 tablet daily in the morning.',
+    manufacturer: 'WellCare Remedies Ltd.',
+    manufacturingDate: '2024-11-02',
+    expiryDate: '2026-11-02',
+  },
+  '8901234326531': {
+    name: 'Fluconazole',
+    description: 'Treats fungal infections.',
+    dosage: '1 inhalation every 6 hours as needed.',
+    manufacturer: 'HealthGen Labs Pvt. Ltd.',
+    manufacturingDate: '2023-06-30',
+    expiryDate: '2025-06-29',
+  },
+};
+    // Auth Functions
+    function showRegister() {
+      document.getElementById('login-form').classList.remove('active');
+      document.getElementById('register-form').classList.add('active');
+    }
+
+    function showLogin() {
+      document.getElementById('register-form').classList.remove('active');
+      document.getElementById('login-form').classList.add('active');
+    }
+
+    function registerUser(event) {
+      event.preventDefault();
+      const email = document.getElementById("reg-email").value;
+      const password = document.getElementById("reg-password").value;
+      const errorMessage = document.getElementById("error-message");
+      // Clear previous error messages
+      errorMessage.style.display = "none";
+      errorMessage.textContent = "";
+
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        errorMessage.textContent = "Please enter a valid email address.";
+        errorMessage.style.display = "block";
+        return;
+      }
+
+      // Password validation
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      if (!passwordRegex.test(password)) {
+        errorMessage.textContent = "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.";
+        errorMessage.style.display = "block";
+        return;
+      }
+
+      // Check if user already exists
+      let users = JSON.parse(localStorage.getItem("users")) || [];
+      if (users.find((user) => user.email === email)) {
+        errorMessage.textContent = "User already exists. Please login.";
+        errorMessage.style.display = "block";
+        return;
+      }
+
+      // Save user data
+      users.push({ email, password });
+      localStorage.setItem("users", JSON.stringify(users));
+      alert("Registration successful! Please login.");
+      showLogin();
+    }
+
+    function loginUser(event) {
+      event.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      let users = JSON.parse(localStorage.getItem("users")) || [];
+      const user = users.find((user) => user.email === email && user.password === password);
+      
+      if (user) {
+        localStorage.setItem("loggedInUser", email);
+        document.getElementById('auth-container').style.display = 'none';
+        document.getElementById('app-container').style.display = 'block';
+      } else {
+        alert("Invalid email or password.");
+      }
+    }
+
+    function logoutUser() {
+      localStorage.removeItem("loggedInUser");
+      document.getElementById('auth-container').style.display = 'block';
+      document.getElementById('app-container').style.display = 'none';
+      showLogin();
+    }
+
+    // Format date function
+    function formatDate(dateString) {
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      return new Date(dateString).toLocaleDateString('en-US', options);
+    }
+
+    // Perform quality check
+    function performQualityCheck() {
+      const barcode = document.getElementById('barcode').value;
+      const isValid = medicineDatabase.hasOwnProperty(barcode);
+      const message = isValid ? ' ✅ 🇹​​🇭​​🇪​ ​🇲​​🇪​​🇩​​🇮​​🇨​​🇮​​🇳​​🇪​ ​🇵​​🇦​​🇸​​🇸​​🇪​​🇩​ ​🇹​​🇭​​🇪​ ​🇶​​🇺​​🇦​​🇱​​🇮​​🇹​​🇾​ ​🇨​​🇭​​🇪​​🇨​​🇰​.' : ' ❌ ​🇹​​🇭​​🇪​ ​🇲​​🇪​​🇩​​🇮​​🇨​​🇮​​🇳​​🇪​ ​🇫​​🇦​​🇮​​🇱​​🇪​​🇩​ ​🇹​​🇭​​🇪​ ​🇶​​🇺​​🇦​​🇱​​🇮​​🇹​​🇾​ ​🇨​​🇭​​🇪​​🇨​​🇰​.';
+      
+      // Show result
+      const resultDiv = document.getElementById('qualityResult');
+      const resultIcon = document.getElementById('resultIcon');
+      const resultMessage = document.getElementById('resultMessage');
+      
+      resultDiv.classList.remove('hidden');
+      
+      if (isValid) {
+        resultIcon.className = 'icon icon-check w-6 h-6 text-green-500';
+        resultMessage.className = 'font-bold text-green-500';
+        
+        // Hide call option for valid medicines
+        document.getElementById('callOption').classList.add('hidden');
+      } else {
+        resultIcon.className = 'icon icon-x w-6 h-6 text-red-500';
+        resultMessage.className = 'font-bold text-red-500';
+        
+        // Show call option for invalid medicines
+        document.getElementById('callOption').classList.remove('hidden');
+      }
+      
+      resultMessage.textContent = message;
+      
+      // Show medicine details if valid
+      const medicineDetailsDiv = document.getElementById('medicineDetails');
+      if (isValid) {
+        const medicine = medicineDatabase[barcode];
+        
+        document.getElementById('medicineName').textContent = medicine.name;
+        document.getElementById('medicineDescription').textContent = medicine.description;
+        document.getElementById('medicineDosage').textContent = medicine.dosage;
+        document.getElementById('medicineManufacturer').textContent = medicine.manufacturer;
+        document.getElementById('manufacturingDate').textContent = formatDate(medicine.manufacturingDate);
+        document.getElementById('expiryDate').textContent = formatDate(medicine.expiryDate);
+        
+        medicineDetailsDiv.classList.remove('hidden');
+      } else {
+        medicineDetailsDiv.classList.add('hidden');
+      }
+    }
+
+    function setupPasswordToggles() {
+      // Registration password toggle
+      const toggleRegPassword = document.getElementById("toggle-reg-password");
+      const regPasswordInput = document.getElementById("reg-password");
+      
+      if (toggleRegPassword && regPasswordInput) {
+        toggleRegPassword.addEventListener("click", () => {
+          if (regPasswordInput.type === "password") {
+            regPasswordInput.type = "text";
+            toggleRegPassword.classList.replace("fa-eye", "fa-eye-slash");
+          } else {
+            regPasswordInput.type = "password";
+            toggleRegPassword.classList.replace("fa-eye-slash", "fa-eye");
+          }
+        });
+      }
+
+      // Login password toggle
+      const togglePassword = document.getElementById("toggle-password");
+      const passwordInput = document.getElementById("password");
+      
+      if (togglePassword && passwordInput) {
+        togglePassword.addEventListener("click", () => {
+          if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            togglePassword.classList.replace("fa-eye", "fa-eye-slash");
+          } else {
+            passwordInput.type = "password";
+            togglePassword.classList.replace("fa-eye-slash", "fa-eye");
+          }
+        });
+      }
+    }
+    
+
+    // Initialize everything when DOM is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+      // Check if user is logged in
+      const loggedInUser = localStorage.getItem('loggedInUser');
+      if (loggedInUser) {
+        document.getElementById('auth-container').style.display = 'none';
+        document.getElementById('app-container').style.display = 'block';
+      }
+      
+      // Initialize auth forms
+      document.getElementById('register-form').classList.add('active');
+      
+      // Form submissions
+      document.getElementById('userRegisterForm').addEventListener('submit', registerUser);
+      document.getElementById('userLoginForm').addEventListener('submit', loginUser);
+      
+      // Navigation links
+      document.getElementById('login-here').addEventListener('click', showLogin);
+      document.getElementById('register-here').addEventListener('click', showRegister);
+      
+      // Password toggles
+      setupPasswordToggles();
+
+      // Medicine check button
+      const checkButton = document.getElementById('checkButton');
+      if (checkButton) {
+        checkButton.addEventListener('click', performQualityCheck);
+      }
+
+      // Logout button
+      const logoutButton = document.getElementById('logout-btn');
+      if (logoutButton) {
+        logoutButton.addEventListener('click', logoutUser);
+      }
+    });
+    function resetAuthForms() {
+  document.getElementById("reg-email").value = "";
+  document.getElementById("reg-password").value = "";
+  document.getElementById("email").value = "";
+  document.getElementById("password").value = "";
+}
+
+function logoutUser() {
+  localStorage.removeItem("loggedInUser");
+  resetAuthForms();
+  document.getElementById('auth-container').style.display = 'block';
+  document.getElementById('app-container').style.display = 'none';
+  showLogin();
+}
+
+  </script>
+</body>
+</html>
